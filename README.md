@@ -34,17 +34,16 @@
 
 ## 🚀 快速开始
 
-### 1️ 环境要求
+### 1️⃣ 环境要求
 - Node.js **22+**（推荐）
 - npm 或 yarn
 
-### 2️ 克隆 & 安装
+### 2️⃣ 克隆 & 安装
 ```bash
 git clone https://github.com/MaNing522/wclcmmlBOT.git
 cd wclcmmlBOT
 npm install
-
-### 3️ 配置
+3️⃣ 配置
 编辑 config.json，至少修改：
 
 server.host / server.port – 服务器地址和端口
@@ -55,7 +54,7 @@ master – 你的游戏 ID（主人）
 
 根据需要开启 autoFish、autoFarm、storageEnabled 等。
 
-### 4️ 启动
+4️⃣ 启动
 bash
 node bot.js
 或运行一键脚本：start.bat (Windows) 或 ./start.sh (Linux/macOS)
