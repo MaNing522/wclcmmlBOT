@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>存储控制</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Segoe UI',sans-serif; background:#f5f7fa; color:#333;
+      display:flex; justify-content:center; align-items:start; min-height:100vh; padding:20px;
+    }
+    .panel {
+      background:white; border-radius:16px; padding:32px; width:100%; max-width:800px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.06); display:flex; flex-direction:column; gap:20px;
+    }
+    h1 { text-align:center; color:#1a73e8; }
+    a { color:#1a73e8; text-decoration:none; font-weight:500; }
+    a:hover { text-decoration:underline; }
+    .nav { display:flex; gap:10px; justify-content:center; margin-bottom:10px; flex-wrap:wrap; }
+    .nav a, .nav button {
+      padding:8px 18px; border:none; border-radius:8px; background:#1a73e8; color:white;
+      font-weight:500; cursor:pointer; text-decoration:none; font-size:14px;
+    }
+    button { background:#22c55e; }
+    button:hover { background:#16a34a; }
+    .action-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .action-row input { flex:1; padding:10px; border-radius:8px; border:1px solid #d1d5db; font-size:14px; }
+    .result-box {
+      background:#f9fafb; border:1px solid #e5e7eb; border-radius:12px; padding:16px;
+      min-height:100px; font-family:monospace; white-space:pre-wrap;
+    }
+    #message { text-align:center; color:#6b7280; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>存储控制</h1>
+    <div class="nav">
+      <a href="/">← 主控台</a>
+      <a href="/warehouse">📦 仓库库存</a>
+      <a href="/help">📖 帮助</a>
+    </div>
+
+    <div class="action-row">
+      <button onclick="storageAction('check')">检查仓库</button>
+      <button onclick="storageAction('deposit')">存放物品</button>
+    </div>
+    <div class="action-row">
+      <input type="text" id="takeInput" placeholder="物品1 数量1 物品2 数量2 ..." style="flex:1;">
+      <button onclick="takeItems()">拿取</button>
+    </div>
+
+    <div class="result-box" id="resultArea">点击按钮执行操作...</div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const API = 'http://127.0.0.1:8848';
+    let apiKey = localStorage.getItem('botApiKey') || '';
+
+    function showMsg(text,type){
+      const el=document.getElementById('message');
+      el.textContent=text;
+      el.style.color=type==='error'?'#ef4444':'#6b7280';
+      setTimeout(()=>el.textContent='',3000);
+    }
+
+    async function sendCmd(cmd) {
+      try {
+        const url = new URL(`${API}/chat`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        await fetch(url, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({message:cmd})
+        });
+      } catch(e) { showMsg('指令发送失败','error'); }
+    }
+
+    async function storageAction(action) {
+      const cmd = action === 'check' ? '检查' : '存放';
+      appendLog(`> ${cmd}`);
+      try {
+        const url = new URL(`${API}/chat`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({message:cmd})
+        });
+        const data = await res.json();
+        appendLog(data.message || '指令已发送');
+      } catch(e) {
+        appendLog('发送失败');
+      }
+    }
+
+    async function takeItems() {
+      const input = document.getElementById('takeInput').value.trim();
+      if (!input) {
+        showMsg('请输入拿取内容', 'error');
+        return;
+      }
+      const cmd = `拿取 ${input}`;
+      appendLog(`> ${cmd}`);
+      try {
+        const url = new URL(`${API}/chat`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({message:cmd})
+        });
+        const data = await res.json();
+        appendLog(data.message || '指令已发送');
+      } catch(e) {
+        appendLog('发送失败');
+      }
+    }
+
+    function appendLog(msg) {
+      const area = document.getElementById('resultArea');
+      area.textContent += `\n${msg}`;
+      area.scrollTop = area.scrollHeight;
+    }
+  </script>
+</body>
+</html>

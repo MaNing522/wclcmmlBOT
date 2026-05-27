@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>聊天控制台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      display: flex; justify-content: center; align-items: start;
+      min-height: 100vh; padding: 20px;
+    }
+    .panel {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%; max-width: 800px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    h1 { text-align: center; color: #1a73e8; font-weight: 600; }
+    a { color: #1a73e8; text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
+    .nav-buttons { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
+    .nav-btn {
+      padding: 8px 18px; border: none; border-radius: 8px;
+      background: #1a73e8; color: white; cursor: pointer; font-size: 14px; font-weight: 500;
+      text-decoration: none; transition: background 0.2s;
+    }
+    .nav-btn:hover { background: #1557b0; }
+    .chat-output {
+      background: #1e1e2e; color: #d4d4d4; border-radius: 12px; padding: 16px;
+      height: 400px; overflow-y: auto; font-family: monospace; font-size: 13px;
+      white-space: pre-wrap; word-wrap: break-word;
+    }
+    .input-group { display: flex; gap: 10px; margin-top: 10px; }
+    input {
+      flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid #d1d5db;
+      background: white; color: #333; font-size: 14px;
+    }
+    button {
+      padding: 10px 20px; border: none; border-radius: 8px;
+      background: #1a73e8; color: white; font-weight: 600; cursor: pointer; font-size: 14px;
+    }
+    button:hover { background: #1557b0; }
+    .cmd-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .cmd-row input { width: 120px; }
+    .cmd-row .small-btn { padding: 8px 12px; font-size: 13px; background: #374151; }
+    .cmd-row .small-btn:hover { background: #4b5563; }
+    #message { text-align: center; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>聊天控制台</h1>
+    <div class="nav-buttons">
+      <a href="/" class="nav-btn">← 主控台</a>
+      <a href="/help" class="nav-btn">📖 帮助</a>
+      <a href="/config" class="nav-btn">⚙️ 配置</a>
+    </div>
+
+    <div class="chat-output" id="logArea"></div>
+
+    <div class="input-group">
+      <input type="text" id="chatInput" placeholder="公屏发言或 !指令...">
+      <button onclick="sendMessage()">发送</button>
+    </div>
+
+    <div class="cmd-row">
+      <input type="text" id="spamTarget" placeholder="目标玩家">
+      <input type="number" id="spamCount" placeholder="次数" value="5" style="width:80px;">
+      <input type="text" id="spamMsg" placeholder="消息内容" style="width:200px;">
+      <button class="small-btn" onclick="spamPrivate()">私聊刷屏</button>
+      <button class="small-btn" onclick="spamPublic()">公屏刷屏</button>
+    </div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const API = 'http://127.0.0.1:8848';
+    let apiKey = localStorage.getItem('botApiKey') || '';
+    const logArea = document.getElementById('logArea');
+    const chatInput = document.getElementById('chatInput');
+
+    // Enter 发送消息
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function showMsg(text,type){
+      const el=document.getElementById('message');
+      el.textContent=text;
+      el.style.color=type==='error'?'#ef4444':'#6b7280';
+      setTimeout(()=>el.textContent='',3000);
+    }
+
+    async function sendMessage() {
+      const msg = chatInput.value.trim();
+      if (!msg) return;
+      try {
+        const url = new URL(`${API}/chat`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({message:msg})
+        });
+        if (!res.ok) showMsg('发送失败','error');
+        chatInput.value = '';
+        chatInput.focus();
+      } catch(e) { showMsg('网络错误','error'); }
+    }
+
+    async function spamPrivate(){
+      const t=document.getElementById('spamTarget').value,
+            c=document.getElementById('spamCount').value,
+            m=document.getElementById('spamMsg').value;
+      if(!t||!m){ showMsg('填写完整','error'); return; }
+      sendCmd(`!spam ${t} ${c} ${m}`);
+    }
+
+    async function spamPublic(){
+      const c=document.getElementById('spamCount').value,
+            m=document.getElementById('spamMsg').value;
+      if(!m){ showMsg('填写消息','error'); return; }
+      sendCmd(`!spamall ${c} ${m}`);
+    }
+
+    async function sendCmd(cmd){
+      try {
+        const url = new URL(`${API}/chat`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        await fetch(url, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({message:cmd})
+        });
+      } catch(e) { showMsg('指令发送失败','error'); }
+    }
+
+    async function fetchLogs() {
+      try {
+        const url = new URL(`${API}/api/logs`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const data = await res.json();
+        logArea.innerHTML = data.logs.map(line => escapeHtml(line)).join('<br>');
+        logArea.scrollTop = logArea.scrollHeight;
+      } catch(e) {}
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    setInterval(fetchLogs, 300);
+    fetchLogs();
+  </script>
+</body>
+</html>
