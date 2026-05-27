@@ -44,7 +44,7 @@ git clone https://github.com/MaNing522/wclcmmlBOT.git
 cd wclcmmlBOT
 npm install
 
-```bash
+bash
 ###3️⃣ 配置
 编辑 config.json，至少修改：
 
