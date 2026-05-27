@@ -170,26 +170,26 @@ node bot.js
 ## ❓ 常见问题
 
 **1. Bot 连接不上服务器？**  
-检查 `config.json` 中的 `server.host`、`port`、`version` 是否正确，以及网络是否通畅。
+检查config.json中的server.host、port、version是否正确，以及网络是否通畅。
 
 **2. 存储功能没反应？**  
-确保 `storageEnabled: true`，仓库区域的两个对角坐标正确覆盖了所有箱子，存放箱/拿取箱旁有对应文字的告示牌。
+确保storageEnabled: true，仓库区域的两个对角坐标正确覆盖了所有箱子，存放箱/拿取箱旁有对应文字的告示牌。
 
 **3. AI 不回复或报错？**  
-确认 `ai.enabled: true`，且 `apiKey` 有效；智谱 API 需要国内网络访问，可检查是否能连接 `open.bigmodel.cn`。
+确认ai.enabled: true，且apiKey有效；智谱 API 需要国内网络访问，可检查是否能连接open.bigmodel.cn。
 
 **4. 自动农场不工作？**  
-确保 `autoFarm.enabled: true`，Bot 背包有对应种子，且作物在配置的 `range` 内。
+确保autoFarm.enabled: true，Bot 背包有对应种子，且作物在配置的range内。
 
 **5. 如何停止所有自动任务？**  
-使用 `!stop` 停止移动，`!monster off` 关闭清怪，`!fish off` / `!farm off` 关闭对应功能。
+使用!stop停止移动，!monster off关闭清怪，!fish off/!farm off关闭对应功能。
 
 ---
 
 ## 🤝 贡献与支持
 
-欢迎提交 Issue 和 Pull Request。如有疑问，可联系作者 [@MaNing522](https://github.com/MaNing522)。
-
+欢迎提交 Issue 和 Pull Request。如有疑问，可联系作者 [@MaNing522](https://github.com/MaNing522)或者发送邮件到邮箱basiccoppercarbonate2026@outlook
+.com
 ---
 
 ## 📄 许可证
