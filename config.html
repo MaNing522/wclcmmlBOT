@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot 配置编辑器</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      display: flex; justify-content: center; align-items: start;
+      min-height: 100vh; padding: 20px;
+    }
+    .panel {
+      background: white;
+      border-radius: 16px; padding: 32px; width: 100%; max-width: 900px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+      display: flex; flex-direction: column; gap: 24px;
+    }
+    h1 { text-align: center; color: #1a73e8; font-weight: 600; }
+    a { color: #1a73e8; text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
+    .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-title strong { font-size: 1.1rem; }
+    .cfg-editor {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .cfg-editor fieldset {
+      border: 1px solid #e5e7eb;
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      background: white;
+    }
+    .cfg-editor legend {
+      padding: 0 8px;
+      font-weight: 600;
+      color: #1a73e8;
+      background: white;
+      border-radius: 4px;
+    }
+    .cfg-editor label {
+      display: block;
+      margin: 8px 0 4px;
+      font-size: 14px;
+      color: #4b5563;
+      font-weight: 500;
+    }
+    .cfg-editor input[type="text"],
+    .cfg-editor input[type="number"],
+    .cfg-editor select,
+    .cfg-editor textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background: white;
+      color: #333;
+      font-size: 14px;
+      transition: border-color 0.2s;
+      margin-bottom: 4px;
+    }
+    .cfg-editor input:focus,
+    .cfg-editor select:focus,
+    .cfg-editor textarea:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.1);
+    }
+    .cfg-editor textarea { resize: vertical; }
+    .inline { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+    .inline input[type="checkbox"] { width: 18px; height: 18px; accent-color: #1a73e8; }
+    .inline label { margin: 0; }
+    button {
+      padding: 10px 20px; border: none; border-radius: 8px;
+      font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-primary { background: #1a73e8; color: white; }
+    .btn-primary:hover { background: #1557b0; }
+    .btn-secondary { background: #e5e7eb; color: #374151; }
+    .btn-secondary:hover { background: #d1d5db; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+    #message { text-align: center; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>Bot 配置</h1>
+    <div style="text-align:center;">
+      <a href="/">← 返回控制台</a>
+    </div>
+
+    <div class="section-title">
+      <strong>所有设置项（修改后保存，重启生效）</strong>
+      <div class="btn-group">
+        <button class="btn-secondary" onclick="loadConfig()">重新加载</button>
+        <button class="btn-primary" onclick="saveConfig()">保存配置</button>
+        <button class="btn-danger" onclick="restartBot()">重启 Bot</button>
+      </div>
+    </div>
+
+    <div class="cfg-editor">
+      <fieldset>
+        <legend>主人 &amp; 服务器连接</legend>
+        <label>主人 ID</label><input type="text" id="cfgMaster" placeholder="游戏内主人名">
+        <label>服务器地址</label><input type="text" id="cfgHost" placeholder="mcbox.online">
+        <label>端口</label><input type="number" id="cfgPort" value="25565">
+        <label>Bot 游戏名</label><input type="text" id="cfgUsername">
+        <label>认证模式</label><select id="cfgAuth"><option value="offline">offline</option><option value="microsoft">microsoft</option></select>
+        <label>版本</label><input type="text" id="cfgVersion" placeholder="1.21.11">
+      </fieldset>
+
+      <fieldset>
+        <legend>自动登录 &amp; 重生</legend>
+        <label>登录命令</label><input type="text" id="cfgLoginCmd" placeholder="/login">
+        <label>登录密码</label><input type="text" id="cfgLoginPw">
+        <div class="inline"><input type="checkbox" id="cfgAutoRespawn"> <label for="cfgAutoRespawn">自动重生</label></div>
+        <label>登录延迟 (毫秒)</label><input type="number" id="cfgLoginDelay" value="1000">
+      </fieldset>
+
+      <fieldset>
+        <legend>持久密码</legend>
+        <label>密码 (用于 !authme)</label><input type="text" id="cfgPersistentPassword" placeholder="留空表示无密码">
+      </fieldset>
+
+      <fieldset>
+        <legend>功能开关</legend>
+        <div class="inline"><input type="checkbox" id="cfgStorageEnabled"> <label for="cfgStorageEnabled">启用自动存储</label></div>
+        <div class="inline"><input type="checkbox" id="cfgAiEnabled"> <label for="cfgAiEnabled">启用 AI 聊天</label></div>
+        <div class="inline"><input type="checkbox" id="cfgAutoFishEnabled"> <label for="cfgAutoFishEnabled">自动钓鱼</label></div>
+        <div class="inline"><input type="checkbox" id="cfgAutoFarmEnabled"> <label for="cfgAutoFarmEnabled">自动农场</label></div>
+        <div class="inline"><input type="checkbox" id="cfgSmartPath"> <label for="cfgSmartPath">智能路径规划 (安全模式)</label></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>自动钓鱼</legend>
+        <label>超时重抛 (毫秒)</label><input type="number" id="cfgFishTimeout" value="30000">
+        <div class="inline"><input type="checkbox" id="cfgFishAutoDeposit"> <label>自动存放至仓库</label></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>自动农场</legend>
+        <label>作物类型 (逗号分隔)</label><input type="text" id="cfgFarmCrops" value="wheat,carrots,potatoes,beetroots">
+        <label>扫描半径</label><input type="number" id="cfgFarmRange" value="10">
+        <div class="inline"><input type="checkbox" id="cfgFarmAutoRefill"> <label>自动补充种子</label></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>娱乐指令</legend>
+        <label>骰子冷却 (秒)</label><input type="number" id="cfgDiceCooldown" value="5">
+        <label>默认骰子面数</label><input type="number" id="cfgDefaultDiceSides" value="6">
+        <label>抽签默认签文 (逗号分隔)</label><input type="text" id="cfgLotteryItems" value="大吉,中吉,小吉,末吉,凶,大凶">
+      </fieldset>
+
+      <fieldset>
+        <legend>猜数字游戏</legend>
+        <label>最大猜测次数</label><input type="number" id="cfgGuessMaxAttempts" value="10">
+        <label>超时 (秒)</label><input type="number" id="cfgGuessTimeout" value="60">
+        <label>数字范围最小值</label><input type="number" id="cfgGuessMin" value="1">
+        <label>数字范围最大值</label><input type="number" id="cfgGuessMax" value="100">
+      </fieldset>
+
+      <fieldset>
+        <legend>戳一戳</legend>
+        <div class="inline"><input type="checkbox" id="cfgPokeEnabled"> <label>启用戳一戳</label></div>
+        <label>冷却 (秒)</label><input type="number" id="cfgPokeCooldown" value="60">
+        <div class="inline"><input type="checkbox" id="cfgPokeBroadcast"> <label>公屏显示戳人信息</label></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>玩家资料卡</legend>
+        <div class="inline"><input type="checkbox" id="cfgProfileShowDeaths"> <label>显示死亡次数</label></div>
+        <div class="inline"><input type="checkbox" id="cfgProfileShowFirstSeen"> <label>显示首次出现时间</label></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>AI 聊天增强</legend>
+        <div class="inline"><input type="checkbox" id="cfgContextMemory"> <label>启用对话记忆</label></div>
+        <label>最大记忆消息数</label><input type="number" id="cfgMaxContext" value="10">
+        <label>记忆过期时间 (分钟)</label><input type="number" id="cfgContextExpiry" value="60">
+      </fieldset>
+
+      <fieldset>
+        <legend>消息 &amp; 刷屏</legend>
+        <label>消息间隔 (毫秒)</label><input type="number" id="cfgChatInterval" value="200">
+        <label>最大刷屏次数</label><input type="number" id="cfgSpamLimit" value="50">
+      </fieldset>
+
+      <fieldset>
+        <legend>自动清怪</legend>
+        <div class="inline"><input type="checkbox" id="cfgMonsterEnabled"> <label>启用</label></div>
+        <label>扫描半径</label><input type="number" id="cfgMonsterRange" value="15">
+        <label>中立生物黑名单 (逗号分隔)</label><input type="text" id="cfgMonsterBlacklist">
+      </fieldset>
+
+      <fieldset>
+        <legend>进服指南针</legend>
+        <div class="inline"><input type="checkbox" id="cfgGuideEnabled"> <label>启用</label></div>
+        <label>重试间隔 (毫秒)</label><input type="number" id="cfgGuideRetry" value="3000">
+      </fieldset>
+
+      <fieldset>
+        <legend>自动存储</legend>
+        <label>对角坐标1 X</label><input type="number" id="cfgCorner1X" placeholder="0">
+        <label>对角坐标1 Y</label><input type="number" id="cfgCorner1Y" placeholder="64">
+        <label>对角坐标1 Z</label><input type="number" id="cfgCorner1Z" placeholder="0">
+        <label>对角坐标2 X</label><input type="number" id="cfgCorner2X" placeholder="0">
+        <label>对角坐标2 Y</label><input type="number" id="cfgCorner2Y" placeholder="70">
+        <label>对角坐标2 Z</label><input type="number" id="cfgCorner2Z" placeholder="0">
+        <label>存放箱告示牌文字</label><input type="text" id="cfgDepositSign" placeholder="存放箱">
+        <label>拿取箱告示牌文字</label><input type="text" id="cfgTakeSign" placeholder="拿取箱">
+      </fieldset>
+
+      <fieldset>
+        <legend>留言板</legend>
+        <div class="inline"><input type="checkbox" id="cfgMsgBoardEnabled"> <label>启用留言板</label></div>
+        <label>上线延迟发送 (秒)</label><input type="number" id="cfgMsgDelay" value="10">
+      </fieldset>
+    </div>
+
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const API = 'http://127.0.0.1:8848';
+    let apiKey = localStorage.getItem('botApiKey') || '';
+
+    function showMsg(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.style.color = type === 'error' ? '#ef4444' : '#22c55e';
+      setTimeout(() => el.textContent = '', 5000);
+    }
+
+    async function loadConfig() {
+      try {
+        const url = new URL(`${API}/api/config`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error();
+        const cfg = await res.json();
+
+        document.getElementById('cfgMaster').value = cfg.master || '';
+        document.getElementById('cfgHost').value = cfg.server?.host || '';
+        document.getElementById('cfgPort').value = cfg.server?.port || 25565;
+        document.getElementById('cfgUsername').value = cfg.server?.username || '';
+        document.getElementById('cfgAuth').value = cfg.server?.auth || 'offline';
+        document.getElementById('cfgVersion').value = cfg.server?.version || '';
+        document.getElementById('cfgLoginCmd').value = cfg.login?.command || '';
+        document.getElementById('cfgLoginPw').value = cfg.login?.password || '';
+        document.getElementById('cfgAutoRespawn').checked = !!cfg.autoRespawn;
+        document.getElementById('cfgLoginDelay').value = cfg.loginDelay || 1000;
+        document.getElementById('cfgPersistentPassword').value = cfg.persistentPassword || '';
+        document.getElementById('cfgStorageEnabled').checked = cfg.storageEnabled !== false;
+        document.getElementById('cfgAiEnabled').checked = !!cfg.ai?.enabled;
+        document.getElementById('cfgAutoFishEnabled').checked = !!cfg.autoFish?.enabled;
+        document.getElementById('cfgAutoFarmEnabled').checked = !!cfg.autoFarm?.enabled;
+        document.getElementById('cfgSmartPath').checked = cfg.pathfinder?.smartAvoid !== false;
+        document.getElementById('cfgFishTimeout').value = cfg.autoFish?.timeoutMs || 30000;
+        document.getElementById('cfgFishAutoDeposit').checked = !!cfg.autoFish?.autoDeposit;
+        document.getElementById('cfgFarmCrops').value = (cfg.autoFarm?.crops || ['wheat','carrots','potatoes','beetroots']).join(',');
+        document.getElementById('cfgFarmRange').value = cfg.autoFarm?.range || 10;
+        document.getElementById('cfgFarmAutoRefill').checked = !!cfg.autoFarm?.autoRefillSeeds;
+        document.getElementById('cfgDiceCooldown').value = cfg.funCommands?.diceCooldown || 5;
+        document.getElementById('cfgDefaultDiceSides').value = cfg.funCommands?.defaultDiceSides || 6;
+        document.getElementById('cfgLotteryItems').value = (cfg.funCommands?.lotteryItems || ['大吉','中吉','小吉','末吉','凶','大凶']).join(',');
+        document.getElementById('cfgGuessMaxAttempts').value = cfg.guessGame?.maxAttempts || 10;
+        document.getElementById('cfgGuessTimeout').value = cfg.guessGame?.timeoutSeconds || 60;
+        document.getElementById('cfgGuessMin').value = cfg.guessGame?.rangeMin || 1;
+        document.getElementById('cfgGuessMax').value = cfg.guessGame?.rangeMax || 100;
+        document.getElementById('cfgPokeEnabled').checked = cfg.poke?.enabled !== false;
+        document.getElementById('cfgPokeCooldown').value = cfg.poke?.cooldownSeconds || 60;
+        document.getElementById('cfgPokeBroadcast').checked = !!cfg.poke?.broadcastPublic;
+        document.getElementById('cfgProfileShowDeaths').checked = cfg.profile?.showDeaths !== false;
+        document.getElementById('cfgProfileShowFirstSeen').checked = cfg.profile?.showFirstSeen !== false;
+        document.getElementById('cfgContextMemory').checked = !!cfg.ai?.contextMemory;
+        document.getElementById('cfgMaxContext').value = cfg.ai?.maxContextMessages || 10;
+        document.getElementById('cfgContextExpiry').value = cfg.ai?.contextExpiryMinutes || 60;
+        document.getElementById('cfgChatInterval').value = cfg.chatInterval || 200;
+        document.getElementById('cfgSpamLimit').value = cfg.spamLimit || 50;
+        document.getElementById('cfgMonsterEnabled').checked = !!cfg.autoAttack?.enabled;
+        document.getElementById('cfgMonsterRange').value = cfg.autoAttack?.range || 15;
+        document.getElementById('cfgMonsterBlacklist').value = (cfg.autoAttack?.neutralBlacklist || []).join(',');
+        document.getElementById('cfgGuideEnabled').checked = !!cfg.joinGuide?.enabled;
+        document.getElementById('cfgGuideRetry').value = cfg.joinGuide?.retryDelay || 3000;
+        if (cfg.storage) {
+          document.getElementById('cfgCorner1X').value = cfg.storage.corner1?.x ?? '';
+          document.getElementById('cfgCorner1Y').value = cfg.storage.corner1?.y ?? '';
+          document.getElementById('cfgCorner1Z').value = cfg.storage.corner1?.z ?? '';
+          document.getElementById('cfgCorner2X').value = cfg.storage.corner2?.x ?? '';
+          document.getElementById('cfgCorner2Y').value = cfg.storage.corner2?.y ?? '';
+          document.getElementById('cfgCorner2Z').value = cfg.storage.corner2?.z ?? '';
+          document.getElementById('cfgDepositSign').value = cfg.storage.depositSignText || '存放箱';
+          document.getElementById('cfgTakeSign').value = cfg.storage.takeSignText || '拿取箱';
+        }
+        document.getElementById('cfgMsgBoardEnabled').checked = cfg.messageBoard?.enabled !== false;
+        document.getElementById('cfgMsgDelay').value = cfg.messageBoard?.delaySeconds || 10;
+        showMsg('配置已加载', 'success');
+      } catch (e) { showMsg('加载配置失败', 'error'); }
+    }
+
+    async function saveConfig() {
+      try {
+        const cfg = {
+          master: document.getElementById('cfgMaster').value,
+          server: {
+            host: document.getElementById('cfgHost').value,
+            port: parseInt(document.getElementById('cfgPort').value) || 25565,
+            username: document.getElementById('cfgUsername').value,
+            auth: document.getElementById('cfgAuth').value,
+            version: document.getElementById('cfgVersion').value
+          },
+          login: {
+            command: document.getElementById('cfgLoginCmd').value,
+            password: document.getElementById('cfgLoginPw').value
+          },
+          autoRespawn: document.getElementById('cfgAutoRespawn').checked,
+          loginDelay: parseInt(document.getElementById('cfgLoginDelay').value) || 1000,
+          persistentPassword: document.getElementById('cfgPersistentPassword').value,
+          storageEnabled: document.getElementById('cfgStorageEnabled').checked,
+          sleepRadius: 10,
+          survival: {
+            autoEat: true,
+            foodThreshold: 16,
+            autoEquip: false
+          },
+          webControl: { enabled: true, port: 8848, requireApiKey: false, apiKey: "change-me" },
+          logging: { enabled: true, file: "bot" },
+          ai: {
+            enabled: document.getElementById('cfgAiEnabled').checked,
+            provider: "zhipu",
+            apiKey: "你的API密钥",
+            model: "glm-4-flash",
+            endpoint: "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+            systemPrompt: "你是一个Minecraft服务器中的玩家",
+            contextMemory: document.getElementById('cfgContextMemory').checked,
+            maxContextMessages: parseInt(document.getElementById('cfgMaxContext').value) || 10,
+            contextExpiryMinutes: parseInt(document.getElementById('cfgContextExpiry').value) || 60
+          },
+          autoFish: {
+            enabled: document.getElementById('cfgAutoFishEnabled').checked,
+            timeoutMs: parseInt(document.getElementById('cfgFishTimeout').value) || 30000,
+            autoDeposit: document.getElementById('cfgFishAutoDeposit').checked
+          },
+          autoFarm: {
+            enabled: document.getElementById('cfgAutoFarmEnabled').checked,
+            crops: document.getElementById('cfgFarmCrops').value.split(',').map(s => s.trim()).filter(Boolean),
+            range: parseInt(document.getElementById('cfgFarmRange').value) || 10,
+            autoRefillSeeds: document.getElementById('cfgFarmAutoRefill').checked
+          },
+          funCommands: {
+            diceCooldown: parseInt(document.getElementById('cfgDiceCooldown').value) || 5,
+            defaultDiceSides: parseInt(document.getElementById('cfgDefaultDiceSides').value) || 6,
+            lotteryItems: document.getElementById('cfgLotteryItems').value.split(',').map(s => s.trim()).filter(Boolean)
+          },
+          guessGame: {
+            maxAttempts: parseInt(document.getElementById('cfgGuessMaxAttempts').value) || 10,
+            timeoutSeconds: parseInt(document.getElementById('cfgGuessTimeout').value) || 60,
+            rangeMin: parseInt(document.getElementById('cfgGuessMin').value) || 1,
+            rangeMax: parseInt(document.getElementById('cfgGuessMax').value) || 100
+          },
+          poke: {
+            enabled: document.getElementById('cfgPokeEnabled').checked,
+            cooldownSeconds: parseInt(document.getElementById('cfgPokeCooldown').value) || 60,
+            broadcastPublic: document.getElementById('cfgPokeBroadcast').checked
+          },
+          profile: {
+            showDeaths: document.getElementById('cfgProfileShowDeaths').checked,
+            showFirstSeen: document.getElementById('cfgProfileShowFirstSeen').checked
+          },
+          chatInterval: parseInt(document.getElementById('cfgChatInterval').value) || 200,
+          spamLimit: parseInt(document.getElementById('cfgSpamLimit').value) || 50,
+          autoAttack: {
+            enabled: document.getElementById('cfgMonsterEnabled').checked,
+            range: parseInt(document.getElementById('cfgMonsterRange').value) || 15,
+            neutralBlacklist: document.getElementById('cfgMonsterBlacklist').value.split(',').map(s => s.trim()).filter(Boolean)
+          },
+          joinGuide: {
+            enabled: document.getElementById('cfgGuideEnabled').checked,
+            retryDelay: parseInt(document.getElementById('cfgGuideRetry').value) || 3000
+          },
+          storage: {
+            corner1: {
+              x: parseInt(document.getElementById('cfgCorner1X').value) || 0,
+              y: parseInt(document.getElementById('cfgCorner1Y').value) || 0,
+              z: parseInt(document.getElementById('cfgCorner1Z').value) || 0
+            },
+            corner2: {
+              x: parseInt(document.getElementById('cfgCorner2X').value) || 0,
+              y: parseInt(document.getElementById('cfgCorner2Y').value) || 0,
+              z: parseInt(document.getElementById('cfgCorner2Z').value) || 0
+            },
+            depositSignText: document.getElementById('cfgDepositSign').value || '存放箱',
+            takeSignText: document.getElementById('cfgTakeSign').value || '拿取箱'
+          },
+          messageBoard: {
+            enabled: document.getElementById('cfgMsgBoardEnabled').checked,
+            delaySeconds: parseInt(document.getElementById('cfgMsgDelay').value) || 10
+          },
+          pathfinder: {
+            smartAvoid: document.getElementById('cfgSmartPath').checked,
+            avoidGravityBlocks: true,
+            avoidMagma: true,
+            avoidSweetBerry: true,
+            avoidVoid: true,
+            mode: "safe"
+          }
+        };
+        const url = new URL(`${API}/api/config`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cfg)
+        });
+        const data = await res.json();
+        if (res.ok) showMsg(data.message || '配置已保存', 'success');
+        else showMsg(data.error || '保存失败', 'error');
+      } catch (e) { showMsg('保存失败，请检查表单数据', 'error'); }
+    }
+
+    async function restartBot() {
+      if (!confirm('确定要重启 Bot 吗？')) return;
+      try {
+        const url = new URL(`${API}/restart`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url, { method: 'POST' });
+        const data = await res.json();
+        showMsg(data.message || 'Bot 正在关闭...', 'success');
+      } catch (e) { showMsg('重启失败', 'error'); }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadConfig);
+  </script>
+</body>
+</html>

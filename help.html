@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot 帮助</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      display: flex; justify-content: center; align-items: start;
+      min-height: 100vh; padding: 20px;
+    }
+    .panel {
+      background: white;
+      border-radius: 16px; padding: 32px; width: 100%; max-width: 900px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    h1 { text-align: center; color: #1a73e8; }
+    a { color: #1a73e8; text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
+    .nav-buttons { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .nav-btn {
+      padding: 8px 18px; border: none; border-radius: 8px;
+      background: #1a73e8; color: white; cursor: pointer; font-size: 14px; font-weight: 500;
+      text-decoration: none;
+    }
+    .nav-btn:hover { background: #1557b0; }
+    h2 { color: #1f2937; margin-top: 24px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 6px 0; border-bottom: 1px solid #f3f4f6; }
+    .cmd { font-weight: 600; color: #1a73e8; }
+    .desc { margin-left: 8px; color: #4b5563; }
+    .badge { background: #e5e7eb; color: #374151; font-size: 12px; border-radius: 12px; padding: 2px 8px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>wclcmml专属超级bot 功能帮助</h1>
+    <div class="nav-buttons">
+      <a href="/" class="nav-btn">← 主控台</a>
+      <a href="/chat" class="nav-btn">💬 聊天控制台</a>
+      <a href="/config" class="nav-btn">⚙️ 配置</a>
+    </div>
+
+    <h2>📢 公开指令</h2>
+    <ul>
+      <li><span class="cmd">!tps</span><span class="desc">查看服务器 TPS (效率)</span></li>
+      <li><span class="cmd">!status [玩家]</span><span class="desc">查看 Bot 或指定玩家的生命/饥饿/模式/装备 (管理员不可见)</span></li>
+      <li><span class="cmd">!player</span><span class="desc">列出所有在线玩家</span></li>
+      <li><span class="cmd">!chat &lt;消息&gt;</span><span class="desc">与 AI 对话 (需开启AI功能)</span></li>
+      <li><span class="cmd">!help</span><span class="desc">显示此帮助</span></li>
+      <li><span class="cmd">!sleep</span><span class="desc">寻找附近床睡觉 (范围可配置)</span></li>
+      <li><span class="cmd">!tell &lt;玩家&gt; &lt;留言&gt;</span><span class="desc">给离线玩家留言，上线后自动发送</span></li>
+    </ul>
+
+    <h2>🎲 娱乐互动</h2>
+    <ul>
+      <li><span class="cmd">!dice [面数]</span><span class="desc">掷骰子 (默认1~6，可自定义最大面数)</span></li>
+      <li><span class="cmd">!lottery [签文1,签文2,...]</span><span class="desc">抽签，可自定义签文池</span></li>
+      <li><span class="cmd">!guess start</span><span class="desc">开始猜数字游戏 (1~100)</span></li>
+      <li><span class="cmd">!guess &lt;数字&gt;</span><span class="desc">猜测数字，Bot提示“大了/小了”</span></li>
+      <li><span class="cmd">!guess stop</span><span class="desc">放弃当前游戏</span></li>
+      <li><span class="cmd">!guess stats</span><span class="desc">查看自己的猜数字战绩</span></li>
+      <li><span class="cmd">!poke &lt;玩家&gt;</span><span class="desc">戳一下玩家，在线则私聊，离线则留言</span></li>
+      <li><span class="cmd">!profile [玩家]</span><span class="desc">查看玩家资料（上线次数、在线时长、死亡次数等）</span></li>
+    </ul>
+
+    <h2>🤖 自动化功能</h2>
+    <ul>
+      <li><span class="cmd">!fish on/off</span><span class="desc">自动钓鱼开关</span></li>
+      <li><span class="cmd">!farm on/off</span><span class="desc">自动农场收割与播种开关</span></li>
+      <li><span class="cmd">!pathmode safe/fast</span><span class="desc">切换路径模式（安全优先/距离优先）</span></li>
+      <li><span class="cmd">!clearchat</span><span class="desc">清空自己的AI对话记忆</span></li>
+    </ul>
+
+    <h2>🔧 OP/控制台指令</h2>
+    <ul>
+      <li><span class="cmd">!mark &lt;名称&gt;</span><span class="desc">记录当前位置为坐标 (私密)</span></li>
+      <li><span class="cmd">!pos &lt;名称&gt; [玩家]</span><span class="desc">私聊发送已记录的坐标</span></li>
+      <li><span class="cmd">!send &lt;消息&gt;</span><span class="desc">以 Bot 身份公屏发言</span></li>
+      <li><span class="cmd">!come / !follow / !stop</span><span class="desc">移动与跟随控制</span></li>
+      <li><span class="cmd">!dropall</span><span class="desc">丢弃背包所有物品 (谨慎)</span></li>
+      <li><span class="cmd">!spam &lt;玩家&gt; &lt;次数&gt; &lt;消息&gt;</span><span class="desc">私聊刷屏 (次数0为无限,用!stopspam停止)</span></li>
+      <li><span class="cmd">!spamall &lt;次数&gt; &lt;消息&gt;</span><span class="desc">公屏刷屏</span></li>
+      <li><span class="cmd">!stopspam</span><span class="desc">停止所有刷屏</span></li>
+      <li><span class="cmd">!monster on/off</span><span class="desc">自动清怪开关</span></li>
+      <li><span class="cmd">!kill &lt;玩家&gt;</span><span class="desc">追杀并尝试击杀玩家</span></li>
+      <li><span class="cmd">!hunt &lt;玩家&gt;</span><span class="desc">追杀玩家 (使用 !stop 停止)</span></li>
+      <li><span class="cmd">!td</span><span class="desc">拉下最近打开的活版门</span></li>
+      <li><span class="cmd">!use &lt;槽位&gt;</span><span class="desc">使用背包指定槽位的物品</span></li>
+      <li><span class="cmd">!drop &lt;槽位&gt;</span><span class="desc">丢弃指定槽位物品</span></li>
+      <li><span class="cmd">!lag on/off</span><span class="desc">卡顿模式开关 (高频随机动作)</span></li>
+    </ul>
+
+    <h2>📦 存储指令 (OP)</h2>
+    <ul>
+      <li><span class="cmd">存放</span><span class="desc">将背包所有物品存入仓库</span></li>
+      <li><span class="cmd">检查</span><span class="desc">检查仓库物品统计</span></li>
+      <li><span class="cmd">拿取 &lt;物品1&gt; &lt;数量1&gt; [物品2 数量2...]</span><span class="desc">从仓库取出物品放入拿取箱</span></li>
+      <li><span class="cmd">拿取 全部</span><span class="desc">取回仓库所有物品</span></li>
+      <li><span class="cmd">!storage check/deposit/take/takeall/update</span><span class="desc">英文版存储指令</span></li>
+    </ul>
+
+    <h2>👑 主人专用</h2>
+    <ul>
+      <li><span class="cmd">!op &lt;玩家&gt;</span><span class="desc">添加操作员</span></li>
+      <li><span class="cmd">!deop &lt;玩家&gt;</span><span class="desc">移除操作员</span></li>
+      <li><span class="cmd">!setpassword &lt;密码&gt;</span><span class="desc">设置持久密码</span></li>
+      <li><span class="cmd">!temppassword &lt;分钟&gt;</span><span class="desc">生成随机临时密码 (私聊发送)</span></li>
+      <li><span class="cmd">!auth &lt;玩家&gt; [分钟]</span><span class="desc">临时授权玩家</span></li>
+      <li><span class="cmd">!deauth &lt;玩家&gt;</span><span class="desc">取消临时授权</span></li>
+    </ul>
+
+    <h2>🔐 权限认证</h2>
+    <ul>
+      <li><span class="cmd">!authme &lt;密码&gt;</span><span class="desc">使用密码认证获得临时权限 (30分钟)</span></li>
+      <li><span class="cmd">!authstatus</span><span class="desc">查看自己的权限状态</span></li>
+    </ul>
+
+    <h2>💻 控制台使用</h2>
+    <p style="color:#4b5563;">在控制台直接输入文本 = 公屏发言；输入 !指令 = 执行命令</p>
+    <p style="color:#4b5563;">网页聊天页面可发送消息、指令、刷屏，并实时查看 Bot 输出日志。</p>
+  </div>
+</body>
+</html>

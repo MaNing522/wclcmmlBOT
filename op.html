@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>操作员管理</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      display: flex; justify-content: center; align-items: start;
+      min-height: 100vh; padding: 20px;
+    }
+    .panel {
+      background: white;
+      border-radius: 16px; padding: 32px; width: 100%; max-width: 600px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    h1 { text-align: center; color: #1a73e8; }
+    a { color: #1a73e8; text-decoration: none; font-weight: 500; }
+    a:hover { text-decoration: underline; }
+    .nav { display: flex; gap: 10px; justify-content: center; margin: 20px 0; }
+    .nav a, .nav button {
+      padding: 8px 18px; border: none; border-radius: 8px; background: #1a73e8; color: white;
+      text-decoration: none; font-weight: 500; cursor: pointer; font-size: 14px;
+    }
+    .nav button { background: #22c55e; }
+    .section { margin-top: 20px; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
+    .section h2 { font-size: 16px; margin-bottom: 10px; }
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #f3f4f6; }
+    .list-item:last-child { border-bottom: none; }
+    .op-name { font-weight: 600; }
+    .remove-btn { background: #ef4444; color: white; border: none; border-radius: 6px; padding: 4px 12px; cursor: pointer; }
+    .add-row { display: flex; gap: 10px; margin-top: 20px; }
+    .add-row input { flex: 1; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .add-row button { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    .pw-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+    .pw-row input { flex: 1; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; }
+    .pw-row button { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; }
+    #message { text-align: center; margin-top: 10px; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>操作员管理</h1>
+    <div class="nav">
+      <a href="/">← 主控台</a>
+      <button onclick="refreshList()">刷新列表</button>
+    </div>
+
+    <div class="section">
+      <h2>操作员列表</h2>
+      <div id="opList"></div>
+      <div class="add-row">
+        <input type="text" id="newOpName" placeholder="玩家名">
+        <button onclick="addOp()">添加操作员</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>持久密码</h2>
+      <div class="pw-row">
+        <input type="text" id="passwordInput" placeholder="新密码（留空清除）">
+        <button onclick="setPassword()">保存密码</button>
+      </div>
+    </div>
+
+    <div id="message"></div>
+  </div>
+
+  <script>
+    const API = 'http://127.0.0.1:8848';
+    let apiKey = localStorage.getItem('botApiKey') || '';
+
+    function showMsg(text, type) {
+      const el = document.getElementById('message');
+      el.textContent = text;
+      el.style.color = type === 'error' ? '#ef4444' : '#6b7280';
+      setTimeout(() => el.textContent = '', 3000);
+    }
+
+    async function sendChat(message) {
+      try {
+        const url = new URL(`${API}/chat`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message })
+        });
+        refreshList();
+      } catch (e) { showMsg('网络错误', 'error'); }
+    }
+
+    async function refreshList() {
+      try {
+        const url = new URL(`${API}/api/oplist`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error();
+        const ops = await res.json();
+        const listDiv = document.getElementById('opList');
+        if (ops.length === 0) {
+          listDiv.innerHTML = '<div style="padding:10px;color:#9ca3af;">暂无操作员</div>';
+          return;
+        }
+        listDiv.innerHTML = ops.map(name => `
+          <div class="list-item">
+            <span class="op-name">${name}</span>
+            <button class="remove-btn" onclick="removeOp('${name}')">移除</button>
+          </div>
+        `).join('');
+      } catch (e) { showMsg('加载列表失败', 'error'); }
+    }
+
+    function addOp() {
+      const name = document.getElementById('newOpName').value.trim();
+      if (!name) { showMsg('请输入玩家名', 'error'); return; }
+      sendChat(`!op ${name}`);
+      document.getElementById('newOpName').value = '';
+    }
+
+    function removeOp(name) {
+      if (!confirm(`确定要移除操作员 ${name} 吗？`)) return;
+      sendChat(`!deop ${name}`);
+    }
+
+    async function setPassword() {
+      const pw = document.getElementById('passwordInput').value.trim();
+      try {
+        const url = new URL(`${API}/api/setpassword`);
+        if (apiKey) url.searchParams.set('key', apiKey);
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+        if (res.ok) showMsg(data.message || '密码已保存', 'success');
+        else showMsg(data.error || '保存失败', 'error');
+      } catch (e) { showMsg('网络错误', 'error'); }
+    }
+
+    refreshList();
+  </script>
+</body>
+</html>
