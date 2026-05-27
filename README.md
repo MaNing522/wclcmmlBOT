@@ -1,104 +1,168 @@
-# wclcmmlBOT
-我自己借助DeepSeek开发的minecraftBOT
-记得在项目根目录运行npm install然后双击start.bat
-自己想到什么功能写什么，甚至梦到啥让DS写啥，有些未经测试有些可能用不了
-## wclcmml专属超级bot 完整功能列表
----
-# 一、基础移动与寻路
-- 自定义移动成本（禁止挖掘，允许跑酷、爬梯子/藤蔓、开门等）
-- 平滑转向目标
-- 路径跟随（走到坐标、跟随玩家/实体）
-- 自动停止移动/跟随/追杀
-- 智能路径规划：动态规避危险方块（重力方块、岩浆块、甜浆果丛、虚空等），支持安全/快速模式切换（`!pathmode safe/fast`）
----
-# 二、战斗与PVP
-- 自动清怪：定期扫描敌对生物，自动攻击最近目标（可配置黑白名单）
-- 追杀玩家：`!hunt <玩家>` 持续追击并攻击，`!stop` 停止
-- 击杀玩家：`!kill <玩家>` 立即攻击至目标死亡
----
-# 三、生存辅助
-- 自动进食（饥饿值低于阈值自动吃食物）
-- 自动装备（穿戴最佳盔甲，手持最强武器）
-- 自动睡觉（夜晚检测附近床并睡觉）
-- 自动重生（死亡后自动点击重生）
-- 自动钓鱼：自动抛竿、收竿，背包满时存入仓库（`!fish` 开关）
-- 自动农场：收割成熟作物并重新播种，支持指定作物类型和范围（`!farm`）
----
-# 四、存储系统（有bug，懒得修）
-- 仓库扫描：遍历配置区域内所有箱子，统计物品并记录位置
-- 存放物品：`存放` – 卸下装备，将背包所有物品存入仓库矩阵
-- 拿取物品：`拿取 <物品名> <数量>` – 支持中英文、ID，批量拿取，放入拿取箱
-- 拿取全部：`拿取 全部` – 取出仓库所有物品
-- 检查仓库：`检查` – 显示仓库统计及前15种物品
-- 英文指令：`!storage check/deposit/take/takeall/update`
-- 全局开关：`storageEnabled` 配置项
----
-# 五、聊天与AI
-- 公屏指令：`!tps`, `!status`, `!player`, `!help`, `!chat <消息>`, `!sleep`
-- 私聊指令：`!authme <密码>` 认证获得临时权限
-- OP/控制台指令：`!send`, `!spam`, `!spamall`, `!stopspam`, `!mark`, `!pos`, `!come`, `!follow`, `!stop`, `!dropall`, `!use`, `!drop`, `!td`, `!lag on/off`
-- AI聊天：集成智谱GLM（OpenAI兼容），主要模型api免费
-- 消息队列：自动排队发送，防止刷屏
-- 留言功能：`!tell <玩家> <内容>` 给离线玩家留言，目标上线后自动私聊
-- 骰子与抽签：`!dice [面数]` 掷骰子，`!lottery [签文池]` 抽签（防刷冷却）
-- 猜数字游戏**：`!guess start` 开始，猜测数字，记录战绩
-- 玩家戳一戳：`!poke <玩家>` 戳对方，在线私聊，离线留言
----
-# 六、网页控制台
-- 实时状态：Bot生命、饥饿、TPS、延迟、在线玩家列表、装备、背包（45格）
-- 远程聊天：发送消息或执行指令
-- 配置编辑器：在线修改 `config.json`，保存后重启生效
-- 仓库页面：查看仓库库存，支持手动刷新
-- 存储操作页面：提供检查、存放、拿取按钮
-- 操作员管理页面：查看/添加/移除OP，设置持久密码
-- 玩家统计页面：展示上线次数、总在线时长、最后上下线时间
-- 日志查看：实时显示最近100条日志
-- 帮助页面：列出所有指令
-- 重启按钮：网页端重启Bot（除非你在项目根目录运行node bot.js，不然还得重新双击start.bat）
----
-# 七、玩家管理与统计
-- 玩家上线/下线监听：记录日志，更新历史玩家库
-- 历史玩家库：保存所有曾加入过的玩家名
-- 在线玩家列表：`!player`
-- 玩家状态查询：`!status [玩家]`（管理员不可见）
-- 玩家模式变更通知：公屏广播生存/创造/冒险/旁观切换
-- 特殊欢迎语：主人上线或创造/旁观玩家上线发送定制欢迎
-- 玩家资料卡：`!profile [玩家]` 显示上线次数、总在线时长、死亡次数、首次出现时间、最后上线/下线时间
----
-# 八、权限系统
-- 主人（master）：拥有所有权限，不可降级
-- 操作员（OP）：`!op` / `!deop` 添加/移除，保存在 `data.json`
-- 持久密码：`!setpassword <密码>` 设置，玩家可通过 `!authme` 获得30分钟临时权限
-- 临时密码：`!temppassword [分钟]` 生成随机密码，供他人认证
-- 临时授权：`!auth <玩家> [分钟]` 直接授予，`!deauth` 撤销
----
-# 九、日志与调试
-- 文件日志：按日期分文件存储（可配置开关）
-- 内存日志：保留最近200条，供网页API调用
-- 控制台输出：彩色带时间戳
-- 过滤错误：屏蔽 `PartialReadError` 等无关错误（老是刷屏）
----
-# 十、性能与稳定性
-- TPS计算：通过 `physicsTick` 估算服务器TPS
-- 自动重连：断线后指数退避重连（初始3.5秒，最大60秒）
-- 内存泄漏清理：定期清理多余事件监听器
-- 消息节流：发送间隔可配置
----
-# 十一、特殊玩法
-- 卡顿模式：`!lag on` 高频随机移动/转头/切物品，模拟卡顿（当然是玩笑）
-- 活版门快速下降：`!td` 拉下附近打开的活版门
-- 物品使用：`!use <槽位>` 使用指定槽位物品（吃食物、放置方块等）
-- 物品丢弃：`!drop <槽位>` 或 `!dropall`
-- 坐标标记与发送：`!mark <名称>` 记录坐标，`!pos <名称> [玩家]` 私聊发送
----
-# 十二、服务器连接与登录
-- SRV记录解析：自动查询真实IP/端口
-- 自动登录：支持 `/register` 和 `/login`，可配置密码和延迟
-- 版本兼容：通过 `minecraft-data` 支持指定版本
----
-# 十三、其他辅助
-- 进服指南针：自动检测并绑定出生点（可配置）
-- 存放物品期间禁用自动装备（避免干扰）
-- 中英文物品名转换：支持中文指令识别物品
+<div align="center">
+  
+# 🤖 wclcmml 超级 Bot
 
-（DeepSeek立大功）
+**一个功能完备的 Minecraft 机器人，支持自动战斗、智能存储、AI 对话、网页控制台**
+
+[![Node.js](https://img.shields.io/badge/Node.js-22+-blue?logo=node.js)](https://nodejs.org)
+[![Mineflayer](https://img.shields.io/badge/Mineflayer-4.37-brightgreen?logo=minecraft)](https://github.com/PrismarineJS/mineflayer)
+[![License](https://img.shields.io/badge/License-MIT-green)](#)
+
+</div>
+
+---
+
+## 📌 简介
+
+基于 [Mineflayer](https://github.com/PrismarineJS/mineflayer) 开发的 Minecraft 机器人，可连接任意 Java Edition 服务器（1.21+），提供**生存辅助、仓库管理、自动任务、聊天互动**等丰富功能，并通过**美观的网页控制台**实时监控和远程操控。
+
+---
+
+## ✨ 特色功能
+
+| 类别 | 功能 |
+| :--- | :--- |
+| 🎯 战斗 | 自动清怪、追杀玩家、PVP 攻击 |
+| 🌾 生存 | 自动进食、装备穿戴、钓鱼、农场（收割+播种）、睡觉、重生 |
+| 📦 存储 | 仓库矩阵扫描、一键存放/批量拿取、存放箱/拿取箱分离 |
+| 💬 聊天 | AI 对话（智谱 GLM / 兼容 OpenAI）、离线留言、娱乐指令（骰子/抽签/猜数字/戳一戳） |
+| 🌐 网页控制 | 实时状态、背包/玩家查看、远程命令、配置编辑器、仓库可视化 |
+| 🔐 权限 | 主人、操作员(OP)、持久/临时密码认证、临时授权 |
+| 🧠 智能 | 危险路径规避、多轮对话记忆、TPS 监控、自动重连 |
+
+---
+
+## 🚀 快速开始
+
+### 1️ 环境要求
+- Node.js **22+**（推荐）
+- npm 或 yarn
+
+### 2️ 克隆 & 安装
+```bash
+git clone https://github.com/MaNing522/wclcmmlBOT.git
+cd wclcmmlBOT
+npm install
+
+### 3️ 配置
+编辑 config.json，至少修改：
+
+server.host / server.port – 服务器地址和端口
+
+server.username – Bot 的游戏 ID
+
+master – 你的游戏 ID（主人）
+
+根据需要开启 autoFish、autoFarm、storageEnabled 等。
+
+### 4️ 启动
+bash
+node bot.js
+或运行一键脚本：start.bat (Windows) 或 ./start.sh (Linux/macOS)
+
+启动后打开浏览器访问：http://localhost:8848
+
+⚙️ 主要配置项
+配置节	说明
+server	连接目标服务器的主机、端口、版本、账号
+master	主人游戏名（最高权限）
+storageEnabled	启用仓库矩阵系统
+autoFish / autoFarm	自动钓鱼/农场开关及参数
+ai	AI 聊天（需填写 apiKey）及对话记忆设置
+pathfinder.mode	路径模式：safe（安全）或 fast（快速）
+messageBoard	留言板开关与上线延迟
+webControl	网页服务端口、API Key 验证
+完整配置见 config.json 内注释。
+
+📝 常用指令
+公开指令（所有人可用）
+指令	作用
+!tps	查看服务器 TPS
+!status [玩家]	查看状态
+!player	在线玩家列表
+!chat <消息>	AI 对话
+!tell <玩家> <内容>	离线留言
+!dice [面数]	掷骰子
+!lottery [签文]	抽签
+!guess start / 数字	猜数字游戏
+!poke <玩家>	戳一下
+!profile [玩家]	玩家资料卡
+!fish on/off	自动钓鱼
+!farm on/off	自动农场
+!pathmode safe/fast	路径模式切换
+!clearchat	清空 AI 记忆
+OP / 控制台指令
+指令	作用
+!op / !deop <玩家>	管理操作员
+!mark <名称> / !pos <名称>	记录/发送坐标
+!send <消息>	让 Bot 发言
+!come / !follow / !stop	移动控制
+!spam / !spamall / !stopspam	刷屏
+!monster on/off	自动清怪
+!kill / !hunt <玩家>	攻击/追杀
+!dropall	丢弃所有物品
+!lag on/off	卡顿模式
+存储指令（需启用 storageEnabled）
+指令	作用
+存放	背包全部存入仓库
+检查	查看仓库物品
+拿取 <物品> <数量> ...	批量拿取
+拿取 全部	取回所有物品
+!storage check/deposit/take/takeall/update	英文指令
+🖥️ 网页控制台
+访问 http://localhost:8848 可看到：
+
+主控台 – Bot 状态、背包、在线玩家、快捷指令
+
+聊天控制台 – 发送消息/指令，实时日志
+
+配置编辑器 – 在线修改 config.json（保存后重启生效）
+
+仓库库存 – 可视化物品列表
+
+存储操作 – 存放/拿取/检查
+
+操作员管理 – 管理 OP 和密码
+
+玩家数据 – 上线次数、在线时长
+
+帮助 – 指令参考
+
+📂 项目结构
+text
+├── bot.js                 # 主入口
+├── baritoneMovements.js   # 寻路配置（含智能规避）
+├── config.json            # 配置文件
+├── data/                  # 数据存储（OP列表、统计、留言等）
+├── modules/               # 核心功能模块
+│   ├── autoAttack.js
+│   ├── autoFish.js
+│   ├── autoFarm.js
+│   ├── chatHandler.js
+│   ├── storage.js
+│   ├── webServer.js
+│   └── ...
+├── *.html                 # 网页前端页面
+├── start.bat / start.sh   # 一键启动脚本
+└── README.md
+❓ 常见问题
+1. Bot 连接不上服务器？
+检查 config.json 中的 server.host、port、version 是否正确，以及网络是否通畅。
+
+2. 存储功能没反应？
+确保 storageEnabled: true，仓库区域的两个对角坐标正确覆盖了所有箱子，存放箱/拿取箱旁有对应文字的告示牌。
+
+3. AI 不回复或报错？
+确认 ai.enabled: true，且 apiKey 有效；智谱 API 需要国内网络访问，可检查是否能连接 open.bigmodel.cn。
+
+4. 自动农场不工作？
+确保 autoFarm.enabled: true，Bot 背包有对应种子，且作物在配置的 range 内。
+
+5. 如何停止所有自动任务？
+使用 !stop 停止移动，!monster off 关闭清怪，!fish off / !farm off 关闭对应功能。
+
+🤝 贡献与支持
+欢迎提交 Issue 和 Pull Request。如有疑问，可联系作者 @MaNing522。
+
+📄 许可证
+MIT License © 2025 MaNing522
