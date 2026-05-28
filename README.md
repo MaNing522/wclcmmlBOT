@@ -1,4 +1,4 @@
-以下是完整的 `README.md` 文件内容，可直接复制到你的 GitHub 仓库根目录。
+以下是完整的 README.md 文件内容，可直接复制到你的 GitHub 仓库根目录。
 (别问为什么有这条，问就是盐都不盐了)
 
 <div align="center">
