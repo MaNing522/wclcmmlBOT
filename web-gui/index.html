@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft 机器人控制台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <div id="sidebar">
+      <h2>📊 状态</h2>
+      <div id="status">
+        <p><span class="label">在线状态：</span><span id="online">离线</span></p>
+        <p><span class="label">坐标：</span><span id="coords">-</span></p>
+        <p><span class="label">生命值：</span><span id="health">-</span></p>
+        <p><span class="label">饥饿值：</span><span id="food">-</span></p>
+      </div>
+      <div id="quick-buttons">
+        <button class="quick-btn" data-cmd="！状态">📌 状态</button>
+        <button class="quick-btn" data-cmd="！回家">🏠 回家</button>
+        <button class="quick-btn" data-cmd="！停止">⏹ 停止</button>
+        <button class="quick-btn" data-cmd="！跟随我">🚶 跟随</button>
+      </div>
+      <div id="command-area">
+        <input type="text" id="cmdInput" placeholder="输入命令 (如 ！走到 100 64 200)">
+        <button id="sendBtn">发送命令</button>
+      </div>
+      <div id="message-area">
+        <hr>
+        <input type="text" id="msgInput" placeholder="输入要发送的聊天消息...">
+        <button id="sendMsgBtn">💬 发送消息</button>
+      </div>
+    </div>
+    <div id="log-area">
+      <h2>📜 日志</h2>
+      <div id="log-container"></div>
+    </div>
+  </div>
+  <script src="client.js"></script>
+</body>
+</html>

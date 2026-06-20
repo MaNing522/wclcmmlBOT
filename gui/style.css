@@ -1,0 +1,36 @@
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+body { background:#1e1e2f; color:#ddd; height:100vh; overflow:hidden; }
+#app { display:flex; height:100vh; }
+#sidebar { width:280px; background:#2a2a3d; padding:20px; display:flex; flex-direction:column; border-right:1px solid #444; flex-shrink:0; }
+#sidebar h2 { font-size:18px; margin-bottom:15px; color:#aaccff; }
+#status p { margin:8px 0; }
+.label { color:#aaa; margin-right:8px; }
+
+#quick-buttons { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+.quick-btn { flex:1 0 40%; padding:6px 0; background:#3a3a5a; border:none; border-radius:4px; color:#eee; cursor:pointer; font-size:13px; transition:0.2s; }
+.quick-btn:hover { background:#5a5a8a; }
+.quick-btn:active { transform:scale(0.95); }
+
+#command-area { margin-top:auto; display:flex; flex-direction:column; gap:10px; }
+#cmdInput, #msgInput { padding:10px; border-radius:6px; border:1px solid #555; background:#1e1e2f; color:#eee; font-size:14px; outline:none; }
+#cmdInput:focus, #msgInput:focus { border-color:#6a8cff; }
+
+#sendBtn, #sendMsgBtn { padding:10px; border:none; border-radius:6px; color:white; font-weight:bold; cursor:pointer; transition:0.2s; }
+#sendBtn { background:#4a6cff; }
+#sendBtn:hover { background:#5f7eff; }
+#sendMsgBtn { background:#28a745; }
+#sendMsgBtn:hover { background:#34ce57; }
+
+#message-area { margin-top:10px; }
+#message-area hr { border:none; border-top:1px solid #444; margin:12px 0; }
+#message-area input { margin-bottom:6px; }
+
+#log-area { flex:1; display:flex; flex-direction:column; padding:20px; background:#1a1a2e; }
+#log-area h2 { font-size:18px; color:#aaccff; margin-bottom:15px; }
+#log-container { flex:1; overflow-y:auto; background:#12121f; border-radius:8px; padding:10px; font-family:'Courier New',monospace; font-size:13px; line-height:1.6; }
+.log-entry { padding:2px 0; border-bottom:1px solid #2a2a3d; white-space:pre-wrap; word-break:break-all; }
+.log-entry .time { color:#888; margin-right:8px; }
+.log-entry .level-info { color:#6af; }
+.log-entry .level-error { color:#f66; }
+.log-entry .level-success { color:#6f6; }
+.log-entry .level-warn { color:#fa6; }

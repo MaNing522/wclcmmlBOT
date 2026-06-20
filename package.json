@@ -1,0 +1,19 @@
+{
+  "name": "wclcmmlbot",
+  "version": "2.0.0",
+  "description": "Minecraft AI 机器人，支持 Web 控制、AI 寻路、自动登录、反作弊规避",
+  "main": "main.js",
+  "scripts": {
+    "start": "chcp 65001 > nul && node main.js",
+    "web": "chcp 65001 > nul && node main.js"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "express": "^4.18.2",
+    "mineflayer": "^4.16.0",
+    "mineflayer-pathfinder": "^2.4.5",
+    "ws": "^8.14.2"
+  },
+  "author": "zwzzxy",
+  "license": "MIT"
+}
