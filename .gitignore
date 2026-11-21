@@ -1,0 +1,7 @@
+node_modules/
+mc-server/
+config.json
+bot.log
+*.log
+.bot-state*
+.uploads/

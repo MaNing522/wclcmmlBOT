@@ -1,0 +1,14 @@
+{
+  "name": "ZwzzxyBot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minecraft 1.21.11 无头客户端：复杂寻路 + 鞘翅飞行",
+  "main": "headless.js",
+  "scripts": {
+    "start": "node --max-old-space-size=192 headless.js"
+  },
+  "dependencies": {
+    "mineflayer": "^4.39.0",
+    "mineflayer-pathfinder": "^2.4.5"
+  }
+}
