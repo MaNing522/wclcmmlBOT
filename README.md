@@ -39,8 +39,11 @@ npm start
 | `proxy` | HTTP CONNECT 代理，例如 `http://127.0.0.1:18080`，留空直连 |
 | `stateFile` | 运行模式持久化文件，相对路径按项目目录解析，默认 `.bot-state.json` |
 | `owners` | 允许下指令的玩家名列表，默认 `zwzzxy`、`Server`（控制台） |
+| `autoConnect` | 默认 `true`（启动就连 `host`）；设 `false` 则只开 HTTP 控制口，等 `join` 指令再进服 |
 
-环境变量优先级高于 `config.json`：`MC_CONFIG`、`MC_HOST`、`MC_PORT`、`MC_USER`、`MC_PASSWORD`、`MC_VERSION`、`MC_PROXY`、`MC_OWNERS`、`MC_STATE_FILE`、`MC_CTL_PORT`。
+环境变量优先级高于 `config.json`：`MC_CONFIG`、`MC_HOST`、`MC_PORT`、`MC_USER`、`MC_PASSWORD`、`MC_VERSION`、`MC_PROXY`、`MC_OWNERS`、`MC_STATE_FILE`、`MC_CTL_PORT`、`MC_AUTOCONNECT`。
+
+> 本仓库的 `headless.js` / `baritone.js` 同时被 QQ 机器人项目 `MaNing522/xiaona-bot` 内嵌使用（放在 `src/mcheadless/`），**改动要两边同步提交**。那边以 `MC_AUTOCONNECT=false` 启动，全部进出服与任务都由 AI 通过 HTTP 下发。
 
 ## 游戏内指令
 
@@ -48,6 +51,8 @@ npm start
 
 | 指令 | 作用 |
 | --- | --- |
+| `!进服 <host> [port] [version]` | 连接（或换到）指定服务器 |
+| `!退服` | 断开当前服务器，停止所有任务 |
 | `!状态` | 报告位置、血量、饥饿、当前任务 |
 | `!停` | 停止当前任务 |
 | `!去 x y z` | 寻路到坐标 |
@@ -59,6 +64,7 @@ npm start
 | `!打 [玩家]` | 近战攻击目标 |
 | `!重锤 [玩家]` | 用重锤跳劈 |
 | `!代发 <内容>` | 让机器人发一条公屏消息 |
+| `!服务器命令 <cmd>` | 执行服务器命令（如 `spawn`、`home`），自动补 `/` |
 | `!矿透 开/关/auto` | 切换反矿透策略（auto 会探测服务器是否反矿透） |
 | `!丢垃圾 [n]` | 丢弃背包里的杂物 |
 | `!静默` / `!日志` / `!简报` | 切换回复模式：不说话 / 完整日志 / 只说结果 |

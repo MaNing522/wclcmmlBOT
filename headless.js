@@ -26,6 +26,10 @@ const CFG = {
   proxy: process.env.MC_PROXY || fileCfg.proxy || ''
 }
 
+// 默认启动就连 config 里的服务器；MC_AUTOCONNECT=false 时先只开 HTTP 控制口，
+// 等外部（小钠）用 cmd=join <host> [port] [version] 再进服
+const AUTO_CONNECT = String(process.env.MC_AUTOCONNECT ?? fileCfg.autoConnect ?? 'true') !== 'false'
+
 // 通过 HTTP CONNECT 打开 TCP 隧道，交给 mineflayer 当 socket 用
 function proxyConnect (client) {
   const u = new URL(CFG.proxy)
@@ -53,6 +57,9 @@ function proxyConnect (client) {
 
 let bot = null
 let stopped = false
+let wantConnect = AUTO_CONNECT   // false = 已退服/还没 join，断线不重连
+let connGen = 0                  // 连接代际：join/leave 后旧实例的回调直接作废
+let reconnectTimer = null
 let reconnectDelay = 7000 // Sonar 默认 rejoin-delay 5s，重连不能太快
 let flying = false
 let flyAbort = false
@@ -107,7 +114,8 @@ function fmt (p) {
 }
 
 function createBot () {
-  bot = mineflayer.createBot({
+  const myGen = ++connGen
+  const mine = mineflayer.createBot({
     host: CFG.host,
     port: CFG.port,
     username: CFG.username,
@@ -117,7 +125,8 @@ function createBot () {
     connect: CFG.proxy ? proxyConnect : undefined,
     checkTimeoutInterval: 60 * 1000
   })
-  bot.loadPlugin(pathfinder)
+  bot = mine
+  mine.loadPlugin(pathfinder)
 
   // 适配原版 1.21.2+ 的客户端 tick 协议（Sonar 会校验）：
   // 1) 每个移动包之后必须紧跟 tick_end
@@ -332,6 +341,8 @@ function createBot () {
   bot.on('error', err => log('error:', err.message))
   bot.on('end', reason => {
     log('disconnected:', reason)
+    // 被 join/leave 换下来的旧实例：既不重连，也不碰新连接的状态
+    if (myGen !== connGen) return
     if (patrolTimer) clearTimeout(patrolTimer)
     patrolTimer = null
     flying = false
@@ -345,7 +356,8 @@ function createBot () {
     collectJob = null
     collectRunning = false
     if (global.__elytraAssert) { clearInterval(global.__elytraAssert); global.__elytraAssert = null }
-    setTimeout(createBot, reconnectDelay)
+    if (!wantConnect) return // 已主动退服：不自动重连，等下一次 join
+    reconnectTimer = setTimeout(createBot, reconnectDelay)
     reconnectDelay = Math.min(reconnectDelay * 1.5, 30000)
   })
 
@@ -3069,6 +3081,9 @@ async function onCommand (username, message, isWhisper = false) {
 
 // 供聊天指令与本地 HTTP 控制接口共用
 const CMD_ALIASES = {
+  进服: 'join', 进服务器: 'join', 加入: 'join', 进入: 'join', 连服: 'join',
+  退服: 'leave', 退出: 'leave', 离开: 'leave', 下线: 'leave',
+  服务器命令: 'srvcmd', 执行: 'srvcmd', cmd: 'srvcmd',
   跟随: 'follow', 跟: 'follow', 追: 'follow',
   说: 'say', 代发: 'say', 发言: 'say', 喊: 'say',
   收集: 'collect', 采集: 'collect', 挖: 'collect',
@@ -3096,16 +3111,34 @@ async function dispatchCommand (username, raw) {
   const rest = input.slice(rawCmd.length).trim()
   if (!rawCmd) throw new Error('空指令')
 
-  if (authState !== 'done' && cmd !== 'stop' && cmd !== 'status' && cmd !== 'help') {
+  if (authState !== 'done' && !['stop', 'status', 'help', 'join', 'leave'].includes(cmd)) {
     throw new Error('尚未登录')
   }
 
   try {
     switch (cmd) {
       case 'help':
+        reply('进/出服：！进服 <host> [port] [version] ！退服')
         reply('移动/任务：！状态 ！停 ！发育 ！去 x y z ！飞 x y z ！跟随 [玩家] ！收集 <方块> [数量] ！打 [玩家] ！重锤 [玩家] ！过来')
-        reply('其它：！代发 <内容> ！矿透 开/关/auto ！丢垃圾 [n] ！静默 ！日志 ！简报 ｜ 私聊直接发指令，回复走私聊，代发仍发公屏')
+        reply('其它：！代发 <内容> ！服务器命令 <cmd> ！矿透 开/关/auto ！丢垃圾 [n] ！静默 ！日志 ！简报 ｜ 私聊直接发指令，回复走私聊，代发仍发公屏')
         break
+      case 'join': {
+        const t = joinServer(args[0], args[1], args[2])
+        reply(`正在连接 ${t.host}:${t.port}（${t.version}）`)
+        break
+      }
+      case 'leave':
+        leaveServer()
+        reply('已退出服务器')
+        break
+      case 'srvcmd': {
+        if (!rest) throw new Error('用法 srvcmd <服务器命令>')
+        if (!bot || !bot.entity) throw new Error('不在服务器里')
+        bot.chat(rest.startsWith('/') ? rest : `/${rest}`)
+        lastError = null
+        log(`srvcmd: ${rest}`)
+        break
+      }
       case 'silent':
         outputMode = 'silent'
         log('输出模式：静默（不回答、不发消息）')
@@ -3306,6 +3339,10 @@ async function dispatchCommand (username, raw) {
         break
       }
       case 'status':
+        if (!bot || !bot.entity) {
+          reply(wantConnect ? `连接中…（${CFG.host}:${CFG.port}）` : '当前未进服，可用 join <host> [port] [version] 进服')
+          break
+        }
         reply(`${fmt(bot.entity.position)} 模式=${bot.game.gameMode} 鞘翅=${Boolean(bot.entity.elytraFlying)}${mode.kind === 'develop' ? ` 发育中(钻石x${countItem('diamond')})` : ''}${pvpName ? ` PvP=${pvpName}` : ''}${maceName ? ` 重锤=${maceName}` : ''}${followTarget ? ` 跟随=${followLabel(followTarget)}` : ''}${collectJob ? ` 收集=${collectJob.type} ${collectJob.done}/${collectJob.total}` : ''}`)
         break
       default:
@@ -3322,11 +3359,81 @@ async function dispatchCommand (username, raw) {
   }
 }
 
+// ---------- 进出服（由小钠通过 HTTP 下令）----------
+// 换服/退服前把在跑的任务全部停掉，否则旧任务会拿着已经作废的 bot 继续跑
+function resetTasks () {
+  if (patrolTimer) clearTimeout(patrolTimer)
+  patrolTimer = null
+  flying = false
+  flyAbort = true
+  pvpName = null
+  pvpRunning = false
+  maceName = null
+  maceRunning = false
+  followCancelled = true
+  followTarget = null
+  followRunning = false
+  collectJob = null
+  collectRunning = false
+  if (global.__elytraAssert) { clearInterval(global.__elytraAssert); global.__elytraAssert = null }
+}
+
+function joinServer (address, portArg, versionArg) {
+  let host = String(address || '').trim()
+  if (!host) throw new Error('用法 join <host> [port] [version]')
+  let port = Number(portArg) || 0
+  const m = host.match(/^([^\s:]+):(\d+)$/)
+  if (m) { host = m[1]; port = Number(m[2]) }
+  if (!port) port = 25565
+  if (!(port >= 1 && port <= 65535)) throw new Error(`端口不合法：${port}`)
+  CFG.host = host
+  CFG.port = port
+  if (versionArg) CFG.version = String(versionArg).trim()
+
+  wantConnect = true
+  stopped = false
+  reconnectDelay = 5000
+  authState = 'unknown'
+  authSeen = false
+  regTries = 0
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null }
+  const old = bot
+  connGen++ // 旧实例的 end 回调作废，也不会触发重连
+  bot = null
+  resetTasks()
+  if (old) {
+    try { old.pathfinder?.setGoal(null) } catch {}
+    try { old.quit('switch') } catch {}
+  }
+  saveMode('stopped')
+  log(`join ${CFG.host}:${CFG.port} (${CFG.version}) as ${CFG.username}`)
+  setTimeout(createBot, 300)
+  return { host: CFG.host, port: CFG.port, version: CFG.version }
+}
+
+function leaveServer () {
+  wantConnect = false
+  connGen++
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null }
+  const old = bot
+  bot = null
+  authState = 'unknown'
+  stopped = true
+  resetTasks()
+  if (old) {
+    try { old.pathfinder?.setGoal(null) } catch {}
+    try { old.quit('leave') } catch {}
+  }
+  saveMode('stopped')
+  log('leave: 已退出服务器')
+}
+
 // ---------- 本机 HTTP 控制接口（给 agent 用）----------
 function botState () {
   const connected = Boolean(bot && bot._client && bot._client.state === 'play')
+  const server = { host: CFG.host, port: CFG.port, version: CFG.version, wantConnect }
   if (!bot || !bot.entity) {
-    return { connected, auth: authState, spawned: false, mode: { kind: mode.kind, updatedAt: mode.updatedAt }, lastReply, lastError }
+    return { connected, server, auth: authState, spawned: false, mode: { kind: mode.kind, updatedAt: mode.updatedAt }, lastReply, lastError }
   }
   const p = bot.entity.position
   const players = Object.values(bot.players)
@@ -3340,6 +3447,7 @@ function botState () {
   const offhand = bot.inventory?.slots?.[45]?.name || null
   return {
     connected,
+    server,
     auth: authState,
     authTries: { login: authTries, register: regTries },
     spawned: true,
@@ -3590,4 +3698,5 @@ for (const sig of ['SIGTERM', 'SIGINT']) {
 loadMode()
 listenControl()
 startWatchdog()
-createBot()
+if (wantConnect) createBot()
+else log(`等待进服指令：POST /cmd {"cmd":"join <host> [port] [version]"}（用户 ${CFG.username}）`)
