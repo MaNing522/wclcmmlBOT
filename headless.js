@@ -68,7 +68,9 @@ let authSeen = false      // 见过任何登录/注册提示：有登录插件�
 let regTries = 0          // 首次进服自动注册（/register 或 /reg，带不带确认密码）
 
 // 持久化运行模式：agent 只下指令不维持状态，断线/重连/进程重启后按最后一次指令继续
-const STATE_FILE = process.env.MC_STATE_FILE || fileCfg.stateFile || '/workspace/.bot-state.json'
+// 默认放在项目目录下，换机器 / 换工作目录都不会写丢
+const STATE_FILE = process.env.MC_STATE_FILE
+  || (fileCfg.stateFile ? path.resolve(__dirname, fileCfg.stateFile) : path.join(__dirname, '.bot-state.json'))
 let mode = { kind: 'patrol', updatedAt: 0 } // patrol | stopped | goto | fly | pvp | mace
 
 function loadMode () {

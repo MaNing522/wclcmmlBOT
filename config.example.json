@@ -4,6 +4,6 @@
   "username": "Bot",
   "password": "换成你的登录密码",
   "proxy": "",
-  "stateFile": "/workspace/.bot-state.json",
+  "stateFile": ".bot-state.json",
   "owners": ["你的游戏名"]
 }
